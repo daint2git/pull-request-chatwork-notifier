@@ -20,4 +20,4 @@ jobs:
               "daint-1849": 3844173,
               "dai-dev-demo": 5827977
             }
-          extraMessageBody: 'xxx'
+          extra-message-body: 'xxx'
