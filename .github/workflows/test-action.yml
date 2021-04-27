@@ -1,0 +1,22 @@
+name: chatwork
+
+on:
+  pull_request:
+    types:
+      - opened
+      - closed
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./
+        with:
+          chatwork-api-token: ${{ secrets.CHATWORK_API_TOKEN }}
+          chatwork-room-id: ${{ secrets.CHATWORK_ROOM_ID }}
+          mapping: |
+            {
+              "daint-1849": 3844173,
+              "dai-dev-demo": 5827977
+            }
