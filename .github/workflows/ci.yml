@@ -17,5 +17,5 @@ jobs:
           chatwork-room-id: ${{ secrets.CHATWORK_ROOM_ID }}
           mapping: |
             {
-              "daint2git": 999,
+              "daint2git": 999
             }
