@@ -18,5 +18,8 @@
   "dependencies": {
     "@actions/core": "1.2.7",
     "@actions/github": "4.0.0"
+  },
+  "scripts": {
+    "package": "ncc build src/index.ts --minify"
   }
 }
