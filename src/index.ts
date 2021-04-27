@@ -35,15 +35,11 @@ function parseInput(): Input {
   const mapping = formatMapping(core.getInput('mapping', { required: true }));
   const extraMessageBody = core.getInput('extra-message-body');
 
-  console.log('token', token + '111');
-  console.log('roomId', roomId + '1234');
-  console.log('mapping', mapping);
-
-  if (roomId) {
+  if (Number.isNaN(roomId)) {
     throw new Error('"chatwork-room-id" must be a number.');
   }
 
-  if (Object.keys(mapping).length > 0) {
+  if (Object.keys(mapping).length === 0) {
     throw new Error('"mapping" must be an object with at least one key.');
   }
 

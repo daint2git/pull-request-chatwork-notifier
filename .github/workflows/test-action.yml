@@ -13,8 +13,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: ./
         with:
-          chatwork-api-token: "0924c452f45341fe656254727dac98ca"
-          chatwork-room-id: "227803817"
+          chatwork-api-token: ${{ secrets.CHATWORK_API_TOKEN }}
+          chatwork-room-id: ${{ secrets.CHATWORK_ROOM_ID }}
           mapping: |
             {
               "daint-1849": 3844173,
