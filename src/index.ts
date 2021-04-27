@@ -23,6 +23,12 @@ function formatMapping(mapping: string): Record<string, number> {
   }
 }
 
+function getChatworkUser(githubUsername: string, mapping: Input['mapping']) {
+  return mapping[githubUsername]
+    ? `[To:${mapping[githubUsername]}]${githubUsername}`
+    : githubUsername;
+}
+
 function parseInput(): Input {
   const token = core.getInput('chatwork-api-token', { required: true });
   const roomId = +core.getInput('chatwork-room-id', { required: true });
@@ -49,59 +55,71 @@ function createMessage({
   mapping,
   extraMessageBody,
 }: Pick<Input, 'mapping' | 'extraMessageBody'>) {
-  const chatworkUserIds = Object.values(mapping);
   const { pull_request, action } = github.context.payload;
-  const title = pull_request?.title ?? '';
-  const url = pull_request?.html_url ?? '';
+  const title = pull_request?.title ?? '<Empty title>';
+  const url = pull_request?.html_url ?? '<Empty URL>';
   const pullNumber = pull_request?.number;
-  const createdByGithubUsername = pull_request?.user.login;
-  const toChatworkUsers = chatworkUserIds.map(id => `$[To:${id}]`).join('\n');
-  const createdBy = `[To:${mapping[createdByGithubUsername]}]${createdByGithubUsername}`;
+  const toChatworkUsers = Object.keys(mapping)
+    .map(githubUsername => `[To:${mapping[githubUsername]}]${githubUsername}`)
+    .join('\n');
+  const createdBy = getChatworkUser(pull_request?.user.login, mapping);
 
   if (action === 'opened') {
     return `${toChatworkUsers}
 [info]
-[title]Pull request ${pullNumber} is OPENED[/title]
+[title]Pull request #${pullNumber} is OPENED[/title]
 Title: ${title}
 URL: ${url}
 Created by: ${createdBy}
-[hr]
-${extraMessageBody}
+${
+  extraMessageBody
+    ? `[hr]
+${extraMessageBody}`
+    : ''
+}
 [/info]
 `;
   }
 
   if (action === 'closed') {
+    // pull request merged
     if (pull_request?.merged) {
-      const mergedByGithubUsername = pull_request?.merged_by.login;
-      const mergedBy = `[To:${mapping[mergedByGithubUsername]}]${mergedByGithubUsername}`;
+      const mergedBy = getChatworkUser(pull_request?.merged_by.login, mapping);
 
       return `${toChatworkUsers}
 [info]
-[title]Pull request ${pullNumber} is MERGED[/title]
+[title]Pull request #${pullNumber} is MERGED[/title]
 Title: ${title}
 URL: ${url}
 Created by: ${createdBy}
-Merger by: ${mergedBy}
-[hr]
-${extraMessageBody}
+Merged by: ${mergedBy}
+${
+  extraMessageBody
+    ? `[hr]
+${extraMessageBody}`
+    : ''
+}
 [/info]
 `;
     }
 
     return `${toChatworkUsers}
 [info]
-[title]Pull request ${pullNumber} is CLOSED[/title]
+[title]Pull request #${pullNumber} is CLOSED[/title]
 Title: ${title}
 URL: ${url}
 Created by: ${createdBy}
-[hr]
-${extraMessageBody}
+${
+  extraMessageBody
+    ? `[hr]
+${extraMessageBody}`
+    : ''
+}
 [/info]
 `;
   }
 
-  return '';
+  return '<Empty message body>';
 }
 
 function sendMessage({
@@ -145,18 +163,21 @@ function sendMessage({
 
     request.on('error', reject);
     request.write(`body=${querystring.escape(message)}`, error => {
-      if (error !== null) reject(error);
+      if (error) reject(error);
     });
     request.end();
   });
 }
 
-function isPullRequest() {
+function isPullRequestEvent() {
   return github.context.eventName === 'pull_request';
 }
 
 async function main() {
-  if (!isPullRequest()) return;
+  if (!isPullRequestEvent()) {
+    core.debug('Skipped event');
+    return;
+  }
 
   try {
     const input = parseInput();
