@@ -35,8 +35,8 @@ function parseInput(): Input {
   const mapping = formatMapping(core.getInput('mapping', { required: true }));
   const extraMessageBody = core.getInput('extra-message-body');
 
-  console.log('token', token);
-  console.log('roomId', token);
+  console.log('token', token + '111');
+  console.log('roomId', roomId + '1234');
   console.log('mapping', mapping);
 
   if (roomId) {
