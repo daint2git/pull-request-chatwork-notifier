@@ -49,7 +49,6 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
       - uses: daint2git/pull-request-chatwork-notifier@v1
         with:
           chatwork-api-token: ${{ secrets.CHATWORK_API_TOKEN }}
