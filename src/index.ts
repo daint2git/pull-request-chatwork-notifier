@@ -64,10 +64,10 @@ function createMessage({
     .join('\n');
   const createdBy = getChatworkUser(pull_request?.user.login, mapping);
 
+  // pull request is opened
   if (action === 'opened') {
     return `${toChatworkUsers}
-[info]
-[title]Pull request #${pullNumber} is OPENED[/title]
+[info][title]Pull request #${pullNumber} is OPENED[/title]
 Title: ${title}
 URL: ${url}
 Created by: ${createdBy}
@@ -81,14 +81,14 @@ ${extraMessageBody}`
 `;
   }
 
+  // pull request is closed
   if (action === 'closed') {
-    // pull request merged
+    // pull request has been merged
     if (pull_request?.merged) {
       const mergedBy = getChatworkUser(pull_request?.merged_by.login, mapping);
 
       return `${toChatworkUsers}
-[info]
-[title]Pull request #${pullNumber} is MERGED[/title]
+[info][title]Pull request #${pullNumber} has been MERGED[/title]
 Title: ${title}
 URL: ${url}
 Created by: ${createdBy}
@@ -103,9 +103,9 @@ ${extraMessageBody}`
 `;
     }
 
+    // pull request has been closed without being merged
     return `${toChatworkUsers}
-[info]
-[title]Pull request #${pullNumber} is CLOSED[/title]
+[info][title]Pull request #${pullNumber} has been CLOSED without being MERGED[/title]
 Title: ${title}
 URL: ${url}
 Created by: ${createdBy}
@@ -169,13 +169,17 @@ function sendMessage({
   });
 }
 
-function isPullRequestEvent() {
-  return github.context.eventName === 'pull_request';
+function isValidEvent() {
+  const { context } = github;
+  return (
+    context.eventName === 'pull_request' &&
+    ['opened', 'closed'].includes(context.payload.action as string)
+  );
 }
 
 async function main() {
-  if (!isPullRequestEvent()) {
-    core.debug('Skipped event');
+  if (!isValidEvent()) {
+    core.debug('Skipped action');
     return;
   }
 
